@@ -1,7 +1,3 @@
-import math
-
-from mpmath.math2 import cotpi
-
 from input_loader import load_input
 
 text = load_input("input.txt")
