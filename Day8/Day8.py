@@ -27,27 +27,35 @@ closest_boxes.sort(key=lambda x: x[0])
 print(*closest_boxes[:10], sep='\n')
 
 dsu = DSU()
-iteration = 1000
-
-for i in range(min(iteration, len(closest_boxes))):
+part1_iteration = 1000
+i = 0
+while True:
     dist, a, b = closest_boxes[i]
     a = tuple(map(int, a.split(',')))
     b = tuple(map(int, b.split(',')))
     dsu.union(a, b)
+    print(i)
+    i += 1
+    components = {}
+    for coord in coords:
+        root = dsu.find(coord)
+        components.setdefault(root, []).append(coord)
 
-components = {}
-for point in coords:
-    root = dsu.find(point)
-    components.setdefault(root, []).append(point)
+    if i == part1_iteration:
+        circuits = list(components.values())
+        counts = [len(circuit) for circuit in circuits]
+        counts.sort(reverse=True)
+        part1 = math.prod(counts[:3])
+
+    if len(components) == 1:
+        print(a)
+        print(b)
+        part2 = int(a[0]) * int(b[0])
+        break;
 
 circuits = list(components.values())
 for c in circuits:
     print(c)
-
-counts = [len(circuit) for circuit in circuits]
-counts.sort(reverse=True)
-part1 = math.prod(counts[:3])
-print(counts, sep='\n')
 
 
 print("Part1:" + str(part1))
