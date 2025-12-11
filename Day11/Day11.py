@@ -16,6 +16,11 @@ expression = "[a-z]{3}"
 lookup = {}
 startIndex = None
 
+startInput = 'svr'
+firstEncounter = 'fft'
+secondEncounter = 'dac'
+endOutput = 'out'
+
 
 
 for i,line in enumerate(lines):
@@ -25,24 +30,50 @@ for i,line in enumerate(lines):
 
     lookup.setdefault(input, outputs)
 
-    if input == "you":
+    if input == startInput:
         startIndex = i
 
-
+pbar = tqdm()
+valueCache = {}
+valueCache.setdefault(endOutput, 0)
+outCache = {}
+outCache.setdefault(endOutput, 1)
 stack = []
-stack.append('you')
-
+stack.append((startInput, [startInput], False, None))
 while len(stack) > 0:
-    current = stack.pop()
-    if current == 'out':
-        part1 += 1
-    if current in lookup:
-        outputs = lookup[current]
+    input, path, visited, dac, *rest  = stack.pop()
+    pbar.update(1)
+    print(path)
+
+    if input in valueCache:
+        continue
+
+    if not visited:
+        if input == endOutput:
+            continue
+        outputs = lookup[input]
+        dacInPath = True if secondEncounter in path else False
+        endOutputInOutputs = True if endOutput in outputs else False
+        stack.append((input, path, True, dacInPath , outputs))
         for output in outputs:
-            stack.append(output)
+            outputPath = list(path)
+            outputPath.append(output)
+            childDac = dac or (input == secondEncounter)
+            stack.append((output, outputPath, False, childDac))
+    else:
+        total = 0
+        outCountTotal = 0
+        rest = rest[0]
+        for r in rest:
+            total += valueCache.get(r)
+            if dac:
+                outCountTotal += valueCache.get(r, 0)
 
+        valueCache.setdefault(input, total + 1  if input == firstEncounter else total)
+        outCache.setdefault(input, outCountTotal)
+        continue
 
-
+print(str(outCache.get(startInput)) + " - " + str(valueCache.get(startInput)))
 # find "you" line
 # iterate through connections
 # stack data design with caches while iterating through (dfs)
